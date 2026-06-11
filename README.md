@@ -1,3 +1,5 @@
+<img width="667" height="367" alt="image" src="https://github.com/user-attachments/assets/f339401d-ad2e-41ef-9705-78c23e42b07b" />
+
 # CSTI Engine — Computational Space Theory of Intelligence
 
 A frontier AI architecture implementing the **Computational Space Theory of Intelligence**.
