@@ -136,6 +136,28 @@ def create_app(config: EngineConfig | None = None) -> Any:
         """Cognitive space snapshot."""
         return engine.space.snapshot()
 
+    @app.get("/cognition")
+    def get_cognition():
+        """Latest vector, weight distribution, entropy, and dream state."""
+        return engine.space.substrate.snapshot()
+
+    @app.get("/mnemonics")
+    def get_mnemonics():
+        """Available mnemonic encoding systems."""
+        return engine.space.mnemonics.snapshot()
+
+    @app.get("/mnemonics/encode")
+    def encode_mnemonic(value: int, system: str = "major"):
+        """Encode a number through one of the registered mnemonic systems."""
+        try:
+            return {
+                "value": value,
+                "system": system,
+                "encoding": engine.space.mnemonics.encode(value, system),
+            }
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+
     @app.get("/attractors")
     def get_attractors(top_n: int = 10):
         """Top attractor nodes by cognitive gravity."""

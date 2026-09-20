@@ -71,6 +71,29 @@ python main.py --query "..." --mode full
 python main.py --benchmark
 ```
 
+## Native acceleration
+
+VOID keeps the Python implementation as the portable default, and can use the
+same C ABI implemented in either Rust or C++ for the reachable-reality metric.
+
+Build the Rust backend:
+
+```bash
+cd native/rust
+cargo build --release
+```
+
+Build the C++ backend with CMake:
+
+```bash
+cmake -S native -B native/build
+cmake --build native/build --config Release
+```
+
+The loader discovers built libraries automatically. Set
+`VOID_NATIVE_BACKEND=python` to force the fallback, or `rust`/`cpp` to require
+a native library. The backend name is available as `utils.native_backend.BACKEND_NAME`.
+
 ## Core Concept
 
 Each query does not just produce an answer.
@@ -83,3 +106,21 @@ The system tracks:
 - `coherence_score` — internal consistency
 - `reality_fidelity` — grounding accuracy
 - `meaning_density` — significance per unit structure
+
+## Cognitive substrate
+
+The engine now includes a deterministic substrate for experimental reasoning:
+
+- **Vector assigning and weight distribution** map every query across causal,
+  temporal, abstract, self-model, simulation, reality, meaning, and memory dimensions.
+- **Space entropy** measures how concentrated or distributed the current reasoning
+  weights are.
+- **Blackhole and whitehole attractors** compress dominant signals and emit a
+  novel direction for exploration.
+- **Dreaming** blends recalled concept vectors before the simulation layer runs.
+- **MnemonicRegistry** provides Major, Dominic, peg, and number-shape encodings,
+  with the broader memory-palace, PAO, Leitner, Feynman, calculation, and
+  synesthetic systems registered as extension points.
+
+The latest substrate state is included in `/status`, `/space`, and `/cognition`.
+Use `/mnemonics/encode?value=42&system=major` to test an encoding.

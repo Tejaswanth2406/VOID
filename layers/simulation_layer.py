@@ -36,7 +36,8 @@ class SimulationLayer:
         self.client = client
         self.simulation_history: list[Simulation] = []
 
-    def run(self, query: str, memory_context: str, n_simulations: int = 3) -> list[Simulation]:
+    def run(self, query: str, memory_context: str, n_simulations: int = 3,
+            substrate_context: str = "") -> list[Simulation]:
         """
         Generate N internal simulations of the query's answer-space
         before committing to a response direction.
@@ -54,6 +55,9 @@ Active cognitive attractors: {attractor_labels}
 Available dimensions: {dim_names}
 
 {memory_context}
+
+Cognitive substrate (vector weights, entropy, dream direction):
+{substrate_context}
 
 Generate {n_simulations} simulations. Types available:
 - causal: what causal chain explains this?

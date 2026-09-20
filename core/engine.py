@@ -88,6 +88,7 @@ class CSTIEngine:
         self._log("Step 2/8: Memory — recalling relevant concepts...")
         relevant_nodes = self.memory.recall_relevant(query, top_n=8)
         memory_context = self.memory.get_summary()
+        substrate = self.space.analyze_query(query, [node.label for node in relevant_nodes])
         self._log(f"  Recalled {len(relevant_nodes)} relevant concepts")
 
         # ── STEP 3: Simulation ────────────────────────────────────────────
@@ -95,7 +96,8 @@ class CSTIEngine:
         simulations = self.simulator.run(
             query=query,
             memory_context=memory_context,
-            n_simulations=plan.simulation_count
+            n_simulations=plan.simulation_count,
+            substrate_context=str(substrate),
         )
         best_sim = self.simulator.select_best(simulations)
         sim_context = self.simulator.format_for_context(simulations)
@@ -211,6 +213,7 @@ class CSTIEngine:
             "new_dimensions": [d.name for d in new_dims],
             "coherence_issues": len(issues),
             "simulations_run": len(simulations),
+            "substrate": substrate,
         }
 
         self._log(f"\n✓ Cycle #{self.cycle_count} complete in {cycle_time}s")

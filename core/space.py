@@ -11,6 +11,9 @@ from dataclasses import dataclass, field
 from typing import Any
 from collections import defaultdict
 
+from core.cognition import CognitiveSubstrate, MnemonicRegistry
+from utils.native_backend import reachable_reality_score as native_reachable_reality_score
+
 
 @dataclass
 class ConceptNode:
@@ -85,6 +88,8 @@ class CognitiveSpace:
         self.expansion_log: list[dict] = []
         self.coherence_violations: list[str] = []
         self.created_at = time.time()
+        self.substrate = CognitiveSubstrate()
+        self.mnemonics = MnemonicRegistry()
 
         # Bootstrap core dimensions
         self._init_core_dimensions()
@@ -202,12 +207,13 @@ class CognitiveSpace:
         Composite metric: how much structured reality this space can represent.
         R = f(volume, dimensions, connectivity, coherence, depth)
         """
-        v = math.log1p(self.cognitive_volume)
-        d = math.log1p(self.dimension_count)
-        c = self.connectivity_density
-        coh = self.mean_coherence
-        depth = math.log1p(self.max_depth)
-        return round((v * d * (1 + c) * coh * (1 + depth)), 4)
+        return round(native_reachable_reality_score(
+            self.cognitive_volume,
+            self.dimension_count,
+            self.edge_count,
+            self.mean_coherence,
+            self.max_depth,
+        ), 4)
 
     def snapshot(self) -> dict:
         return {
@@ -222,7 +228,13 @@ class CognitiveSpace:
             "expansion_events": len(self.expansion_log),
             "coherence_violations": len(self.coherence_violations),
             "dimensions": {k: v.to_dict() for k, v in self.dimensions.items()},
+            "cognitive_substrate": self.substrate.snapshot(),
+            "mnemonic_systems": self.mnemonics.snapshot(),
         }
+
+    def analyze_query(self, query: str, concepts: list[str] | None = None) -> dict:
+        """Assign a vector, weight distribution, entropy, and dream to a query."""
+        return self.substrate.analyze(query, concepts or [])
 
     def _log_expansion(self, event_type: str, data: dict):
         self.expansion_log.append({
