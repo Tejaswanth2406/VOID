@@ -18,6 +18,12 @@ class CognitionTests(unittest.TestCase):
         self.assertEqual(registry.encode(12, "dominic"), "AB")
         self.assertEqual(registry.encode(2, "number_shape"), "swan")
 
+    def test_workflow_has_methodical_gate(self):
+        substrate = CognitiveSubstrate()
+        state = substrate.analyze("a query", [])
+        self.assertIn(state["workflow"]["phase"], {"observe", "compress", "simulate", "verify", "commit"})
+        self.assertIn("next_action", state["workflow"])
+
 
 if __name__ == "__main__":
     unittest.main()

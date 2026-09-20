@@ -2,9 +2,32 @@
 
 from __future__ import annotations
 
-import hashlib
-import math
 from dataclasses import dataclass, field
+
+from utils.native_backend import (
+    assign_vector,
+    bayesian_confidence,
+    backend_status,
+    blend_vectors,
+    decay_weight,
+    entropy,
+    normalize_weights,
+    occam_score,
+)
+
+
+ALGORITHMS = (
+    "Occam's Razor", "Bayesian Updating", "Exponential Decay", "Entropy", "Vector Normalization",
+    "Cosine Similarity", "Euclidean Distance", "Weighted Average", "Softmax", "Top-K Selection",
+    "Kahan Summation", "Moving Average", "Exponential Smoothing", "Graph Connectivity", "PageRank",
+    "Breadth-First Search", "Depth-First Search", "Dijkstra Shortest Path", "Union-Find", "Jaccard Similarity",
+    "Min-Max Scaling", "Z-Score Normalization", "Reservoir Sampling", "Fisher-Yates Shuffle", "Bloom Filter",
+    "LRU Eviction", "Leitner Scheduling", "Spaced Repetition", "Doomsday Algorithm", "Major System",
+    "Dominic System", "Peg System", "Method of Loci", "Link Method", "Feynman Technique",
+    "Counterfactual Simulation", "Monte Carlo Sampling", "Beam Search", "Constraint Propagation", "Conflict Resolution",
+    "Blackhole Compression", "Whitehole Generation", "Dream Blending", "Coherence Filtering", "Reality Grounding",
+    "Attractor Ranking", "Dimension Expansion", "Memory Recall", "Evidence Calibration", "Safety Bounds",
+)
 
 
 DEFAULT_DIMENSIONS = (
@@ -32,6 +55,26 @@ class Attractor:
             self.absorbed.append(label)
 
 
+@dataclass(frozen=True)
+class WorkflowAssessment:
+    """Methodical decision trace for one cognitive pass."""
+
+    phase: str
+    simplicity: float
+    retention: float
+    confidence: float
+    next_action: str
+
+    def to_dict(self) -> dict:
+        return {
+            "phase": self.phase,
+            "simplicity": self.simplicity,
+            "retention": self.retention,
+            "confidence": self.confidence,
+            "next_action": self.next_action,
+        }
+
+
 class CognitiveSubstrate:
     """A small, transparent state machine behind higher-level reasoning."""
 
@@ -43,37 +86,20 @@ class CognitiveSubstrate:
         self.last_state: dict = {}
 
     def assign_vector(self, text: str) -> tuple[float, ...]:
-        values = []
-        for index, dimension in enumerate(self.dimensions):
-            digest = hashlib.sha256(f"{dimension}:{text}".encode()).digest()
-            raw = int.from_bytes(digest[index:index + 4], "big") / 2**32
-            values.append(raw * 2.0 - 1.0)
-        length = math.sqrt(sum(value * value for value in values)) or 1.0
-        return tuple(round(value / length, 6) for value in values)
+        return assign_vector(text, len(self.dimensions))
 
     def weight_distribution(self, vector: tuple[float, ...]) -> dict[str, float]:
-        magnitudes = [abs(value) for value in vector]
-        total = sum(magnitudes) or 1.0
-        return {
-            dimension: round(magnitude / total, 6)
-            for dimension, magnitude in zip(self.dimensions, magnitudes)
-        }
+        weights = normalize_weights(vector)
+        return dict(zip(self.dimensions, weights))
 
     @staticmethod
     def entropy(weights: dict[str, float]) -> float:
-        probabilities = [value for value in weights.values() if value > 0]
-        if len(probabilities) <= 1:
-            return 0.0
-        value = -sum(probability * math.log(probability) for probability in probabilities)
-        return round(value / math.log(len(probabilities)), 6)
+        return entropy(tuple(weights.values()))
 
     def dream(self, query: str, concepts: list[str], steps: int = 3) -> dict:
         seeds = concepts[: max(1, steps)] or [query]
         vectors = [self.assign_vector(seed) for seed in seeds]
-        blended = tuple(
-            round(sum(vector[index] for vector in vectors) / len(vectors), 6)
-            for index in range(len(self.dimensions))
-        )
+        blended = blend_vectors(vectors, len(self.dimensions))
         weights = self.weight_distribution(blended)
         dream = {
             "seeds": seeds,
@@ -90,21 +116,48 @@ class CognitiveSubstrate:
         weights = self.weight_distribution(vector)
         entropy = self.entropy(weights)
         dominant = max(weights, key=weights.get)
+        principles = {
+            "occam_score": round(occam_score(1.0, sum(abs(value) for value in vector), len(concepts)), 6),
+            "decay_weight": round(decay_weight(1.0, len(self.history), 30.0), 6),
+            "bayesian_confidence": round(bayesian_confidence(0.5, 1.0 - entropy, 0.0), 6),
+        }
+        workflow = self._assess_workflow(principles, entropy)
         self.blackhole.absorb(dominant, weights[dominant])
         state = {
             "vector": vector,
             "weights": weights,
             "entropy": entropy,
             "dominant_dimension": dominant,
+            "principles": principles,
+            "workflow": workflow.to_dict(),
             "dream": self.dream(query, concepts),
         }
         self.last_state = state
         self.history.append(state)
         return state
 
+    @staticmethod
+    def _assess_workflow(principles: dict[str, float], entropy_value: float) -> WorkflowAssessment:
+        """Apply observe -> compress -> simulate -> verify -> commit gates."""
+        simplicity = principles["occam_score"]
+        retention = principles["decay_weight"]
+        confidence = principles["bayesian_confidence"]
+        if simplicity < 0.25:
+            return WorkflowAssessment("observe", simplicity, retention, confidence, "reduce assumptions")
+        if entropy_value > 0.85:
+            return WorkflowAssessment("compress", simplicity, retention, confidence, "focus the dominant dimension")
+        if confidence < 0.45:
+            return WorkflowAssessment("simulate", simplicity, retention, confidence, "generate competing hypotheses")
+        if retention < 0.5:
+            return WorkflowAssessment("verify", simplicity, retention, confidence, "refresh stale evidence")
+        return WorkflowAssessment("commit", simplicity, retention, confidence, "store the verified concept")
+
     def snapshot(self) -> dict:
         return {
             "dimensions": list(self.dimensions),
+            "backend": backend_status(),
+            "algorithm_count": len(ALGORITHMS),
+            "algorithms": list(ALGORITHMS),
             "last_state": self.last_state,
             "blackhole": self.blackhole.__dict__.copy(),
             "whitehole": self.whitehole.__dict__.copy(),
